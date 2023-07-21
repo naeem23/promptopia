@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Profile from '@components/Profile';
 
 const MyProfile = () => {
+    const router = useRouter();
     const { data: session } = useSession();
     const [myPrompts, setMyPrompts] = useState([]);
 
@@ -18,17 +19,38 @@ const MyProfile = () => {
         if (session?.user.id) fetchMyPrompts();
     }, [session?.user.id]);
 
-    const handleEdit = () => {};
+    const handleEdit = (prompt) => {
+        router.push(`/update-prompt?id=${prompt._id}`);
+    };
 
-    const handleDelete = async () => {};
+    const handleDelete = async (prompt) => {
+        const hasConfirmed = confirm(
+            'Are you sure you want to delete the prompt?'
+        );
+
+        if (hasConfirmed) {
+            try {
+                await fetch(`/api/prompt/${prompt._id.toString()}`, {
+                    method: 'DELETE',
+                });
+
+                const remainingPrompts = myPrompts.filter(
+                    (p) => p._id !== prompt._id
+                );
+                setMyPrompts(remainingPrompts);
+            } catch (error) {
+                console.log(error);
+            }
+        }
+    };
 
     return (
         <Profile
             name="My"
             desc="Welcome to your personalized profile page"
             data={myPrompts}
-            handleEdit
-            handleDelete
+            handleEdit={handleEdit}
+            handleDelete={handleDelete}
         />
     );
 };
